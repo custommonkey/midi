@@ -1,0 +1,69 @@
+package algebra
+
+import cats.Show
+import eu.timepit.refined.W
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.numeric.Interval.Closed
+import eu.timepit.refined.auto._
+import javax.sound.midi.ShortMessage
+import javax.sound.midi.ShortMessage._
+import algebra.Msg
+
+object Messages {
+
+//  object Bite {
+//    implicit val rand: Rand[Int] = () ⇒ RefType.applyRef[Bite].unsafeFrom(Random.nextInt(127))
+//  }
+
+  type Rand[T] = () ⇒ T
+
+  sealed class Status(private[Messages] val value: Int Refined Closed[W.`0`.T, W.`255`.T])
+  sealed trait OnOff extends Status {
+    def note: Int
+  }
+
+  case object TuneRequest             extends Status(TUNE_REQUEST)
+  case object Eox                     extends Status(END_OF_EXCLUSIVE)
+  case object TimingClock             extends Status(TIMING_CLOCK)
+  case object Undefined               extends Status(0xF9)
+  case object Start                   extends Status(START)
+  case object Continue                extends Status(CONTINUE)
+  case object Stop                    extends Status(STOP)
+  case object Undefined2              extends Status(0xFD)
+  case object ActiveSensing           extends Status(ACTIVE_SENSING)
+  case object SystemReset             extends Status(SYSTEM_RESET)
+  case object MTCQuarterFrame         extends Status(0xF1)
+  case object SongSelect              extends Status(SONG_SELECT)
+  case object SongPositionPointer     extends Status(SONG_POSITION_POINTER)
+  case class NoteOn(note: Int)        extends Status(NOTE_ON) with OnOff
+  case class NoteOff(note: Int)       extends Status(NOTE_OFF) with OnOff
+  case class ProgramChange(data: Int) extends Status(PROGRAM_CHANGE)
+  object ProgramChange {
+    implicit val msg: Msg[ProgramChange]   = pc ⇒ mkMsg(pc, pc.data, 0)
+    implicit val show: Show[ProgramChange] = pc ⇒ s"program change ${pc.data}"
+  }
+  object OnOff {
+    implicit val msg: Msg[OnOff] = (n: OnOff) ⇒ mkMsg(n, n.note, 100)
+  }
+  object NoteOff {
+    implicit val show: Show[NoteOff] = n ⇒ s"off $n"
+  }
+  object NoteOn {
+    implicit val show: Show[NoteOn] = n ⇒ s"on $n"
+  }
+
+  sealed class ControlChange(private[Messages] val value: Int)
+  case object AllOff        extends ControlChange(120)
+  case object BankSelectMSB extends ControlChange(0)
+  case object BankSelectLSB extends ControlChange(32)
+
+  object ControlChange {
+    implicit def msg[T <: ControlChange]: Msg[T]   = mkMsg(_)
+    implicit def show[T <: ControlChange]: Show[T] = cc ⇒ s"CC $cc"
+  }
+
+  private def mkMsg(status: Status, data1: Int, data2: Int) =
+    new ShortMessage(status.value, data1, data2)
+  private def mkMsg(cc: ControlChange) = new ShortMessage(CONTROL_CHANGE, cc.value, 0)
+
+}
