@@ -1,25 +1,28 @@
 package interpreters
 
 import algebra.Messages.{NoteOff, NoteOn}
-import algebra.algebra._
+import algebra.types.{Msg, ToScore}
+import algebra.{Device, MidiApi, Note, Receiver}
 import cats.effect.Timer
 import cats.implicits._
 import cats.{MonadError, Show}
 import javax.sound.midi.MidiDevice
-
-import scala.concurrent.duration.FiniteDuration
 
 class DeviceInterpreter[F[_]](val device: MidiDevice, api: MidiApi[F], timer: Timer[F])(
     implicit F: MonadError[F, Throwable])
     extends Device[F] {
   private val receiver: F[Receiver[F]] = api.receiver(device)
 
-  override def send[T: Msg: Show](value: T): F[Unit] =
-    receiver.flatMap(_.send(value, 0))
+  override def send[T: Msg: Show](value: T): F[Unit] = receiver >>= (_.send(value, 0))
 
-  def bleep(i: Int, d: FiniteDuration): F[Unit] =
-    send(NoteOn(i)) >> timer.sleep(d) >> send(NoteOff(i))
+  override def bleep[T](value: T)(implicit toScore: ToScore[T]): F[Unit] =
+    toScore(value).traverse {
+      case Left(Note(i, b)) ⇒
+        send(NoteOn(i)) >> timer.sleep(b) >> send(NoteOff(i))
+      case Right(d) ⇒
+        timer.sleep(d)
+    }.void
 
   def close(): F[Unit] = F.catchNonFatal(device.close())
-  def open(): F[Unit] = F.catchNonFatal(device.open())
+  def open(): F[Unit]  = F.catchNonFatal(device.open())
 }

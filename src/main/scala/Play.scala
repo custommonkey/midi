@@ -1,53 +1,42 @@
-import algebra.Messages.ProgramChange
-import algebra.algebra.Device
-import cats.Show
+import algebra.Tempo.BeatOps
+import algebra.types.{Thing, ToScore}
+import algebra.{Device, Note, Tempo}
 import cats.effect.IO
 import cats.effect.IO.sleep
 import cats.implicits._
+import devices.Gervill
 import eu.timepit.refined.auto._
-import javax.sound.midi.{Instrument, Patch}
 
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 object Play extends PlayApp {
 
-  implicit val showPath :Show[Patch] = p ⇒ s"${p.getBank} + ${p.getProgram}"
-  implicit val showInstrument: Show[Instrument] = i ⇒ {
-    val xxx = i match {
-      case _: com.sun.media.sound.DLSInstrument ⇒ "dls"
-      case _: com.sun.media.sound.SF2Instrument ⇒ "sf2"
-      case _: com.sun.media.sound.SimpleInstrument ⇒ "simple"
-    }
-    show"$xxx ${i.toString} ${i.getName} ${i.getPatch}"
-  }
-
-  override def play(device: Device[IO]): IO[Unit] = {
-
-    val crap: IO[Unit] = api.instruments >>= (_.traverse(println(_)).void)
+  override def play(device: Device[IO]): IO[Any] = {
 
     import device._
+    import utils._
 
-    val tempo = new Tempo(160)
-    import tempo.implicits._
+    implicit val tempo = Tempo(160)
 
-    val notes  = List.fill(4)(Random.nextInt(44) + 30)
-    val things = List.fill(8)(notes).flatten
+    val notes = List.fill(4)(Random.nextInt(44) + 30)
+    val bars  = List.fill(8)(notes).flatten
 
-    def boom(i: Int) =
-      bleep(i, 1.semiquaver) >>
-        sleep(1.semiquaver)
+    implicit val tup: ToScore[(Int, FiniteDuration)] = (i: (Int, FiniteDuration)) ⇒
+      List(Thing(Note(i._1, i._2)))
 
-    val aa = sleep(1.beat) >> things.traverse(boom).void
+    def boom(i: Int) = bleep(i → 1.semiquaver) >> sleep(1.semiquaver)
 
-    val bb = things.map(_ + 12).traverse(boom).void
+    val leftHand  = bars.traverse(boom).void
+    val rightHand = bars.map(_ + 12).traverse(boom).void
 
-    crap >>
-      send(ProgramChange(Random.nextInt(127))) >>
+    showInstruments >>
+      send(Gervill.AcousticGrandPiano) >>
       (for {
-        fiber1 ← aa.start
-        fiber2 ← bb.start
-        _      ← fiber1.join
-        _      ← fiber2.join
+        left  ← leftHand.start
+        right ← rightHand.start
+        _     ← left.join
+        _     ← right.join
       } yield ())
-  }.void
+  }
 }

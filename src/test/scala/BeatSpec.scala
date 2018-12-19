@@ -1,36 +1,38 @@
-import Tempo.Bpm
+import algebra.Tempo
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
 import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.scalacheck.arbitraryRefType
-import org.scalacheck.{Gen, Arbitrary ⇒ Arb}
+import org.scalacheck.{Gen, ScalacheckShapeless, Arbitrary ⇒ Arb}
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{MustMatchers, WordSpec}
+import Tempo._
 
 import scala.concurrent.duration._
 
-class BeatSpec extends WordSpec with PropertyChecks with MustMatchers {
+class BeatSpec extends WordSpec with PropertyChecks with MustMatchers with ScalacheckShapeless {
 
   implicit def arbInt: Arb[Int Refined Positive]     = arbitraryRefType(Gen.posNum[Int])
   implicit def arbFloat: Arb[Float Refined Positive] = arbitraryRefType(Gen.posNum[Float])
 
   "beat" should {
-    "convert beats to millis" in {
-      forAll { (i: Int , bpm: Bpm) ⇒
-        val tempo = new Tempo(bpm)
-        import tempo.implicits._
+    "convert int beats to millis" in {
+      forAll { (i: Int, tempo: Tempo) ⇒
+        implicit val t = tempo
 
-        val expected = (1.minute / bpm.toLong) * i.toLong
+        val expected = (1.minute / tempo.bpm.toLong) * i.toLong
 
         i.beats must equal(expected)
 
       }
+    }
 
-      forAll { (i: Float , bpm: Bpm) ⇒
-        val tempo = new Tempo(bpm)
-        import tempo.implicits._
+    "convert float beats to millis" in {
 
-        val expected = (1.minute / bpm.toLong) * i.toLong
+      forAll { (i: Float, tempo: Tempo) ⇒
+        implicit val t = tempo
+
+        val expected = (1.minute / tempo.bpm.toLong) * i.toLong
 
         i.beats must equal(expected)
 

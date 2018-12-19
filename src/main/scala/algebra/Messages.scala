@@ -7,7 +7,8 @@ import eu.timepit.refined.numeric.Interval.Closed
 import eu.timepit.refined.auto._
 import javax.sound.midi.ShortMessage
 import javax.sound.midi.ShortMessage._
-import algebra.Msg
+import algebra.types.Msg
+import scala.util.{Random ⇒ ScalaRandom}
 
 object Messages {
 
@@ -39,8 +40,9 @@ object Messages {
   case class NoteOff(note: Int)       extends Status(NOTE_OFF) with OnOff
   case class ProgramChange(data: Int) extends Status(PROGRAM_CHANGE)
   object ProgramChange {
-    implicit val msg: Msg[ProgramChange]   = pc ⇒ mkMsg(pc, pc.data, 0)
-    implicit val show: Show[ProgramChange] = pc ⇒ s"program change ${pc.data}"
+    implicit val msg: Msg[ProgramChange]           = pc ⇒ mkMsg(pc, pc.data, 0)
+    implicit def show[T <: ProgramChange]: Show[T] = pc ⇒ s"program change ${pc.data}"
+    implicit val random: Random[ProgramChange]     = () ⇒ ProgramChange(ScalaRandom.nextInt(127))
   }
   object OnOff {
     implicit val msg: Msg[OnOff] = (n: OnOff) ⇒ mkMsg(n, n.note, 100)

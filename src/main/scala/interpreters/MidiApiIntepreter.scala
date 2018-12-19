@@ -1,11 +1,11 @@
 package interpreters
 
-import algebra.Print
-import algebra.algebra.{MidiApi, Msg, Receiver}
+import algebra.{MidiApi, Print, Receiver}
+import algebra.types.Msg
+import cats.implicits._
 import cats.{ApplicativeError, Eval, Monad, Show}
 import javax.sound.midi.MidiDevice.Info
 import javax.sound.midi.{Instrument, MidiDevice, MidiSystem}
-import cats.implicits._
 
 class MidiApiIntepreter[F[_]: Monad](println: Print[F])(implicit F: ApplicativeError[F, Throwable])
     extends MidiApi[F] {

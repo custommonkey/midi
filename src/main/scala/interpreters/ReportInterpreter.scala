@@ -1,24 +1,25 @@
 package interpreters
+
 import algebra.{Print, Reports}
+import algebra.types.Report
 import algebra.errors.{DeviceNotFound, NoReceivers}
-import cats.ApplicativeError
 import cats.implicits._
 import javax.sound.midi.MidiDevice.Info
 
 import scala.Console.{RESET, YELLOW}
 
-class ReportInterpreter[F[_]](println: Print[F])(implicit a: ApplicativeError[F, Throwable])
-    extends Reports[F] {
+class ReportInterpreter[F[_]](println: Print[F]) extends Reports[F] {
 
-  override def noReceivers(err: NoReceivers): F[Unit] =
-    println(s"NoReceivers ${err.info.mkString(", ")}")
+  override def report[E: Report](e: E): F[Unit] =
+    println(implicitly[Report[E]].apply(e))
 
-  override def deviceNotFound(err: DeviceNotFound): F[Unit] =
-    println(s"${YELLOW}Cannot open '${err.name}'$RESET")
+  implicit val noReceivers: Report[NoReceivers] = err ⇒
+    s"NoReceivers ${err.info.toList.mkString(", ")}"
 
-  private def info(i: Info) =
-    println(i.getName) *>
-      println(" -- " + i.getDescription)
+  implicit val deviceNotFound: Report[DeviceNotFound] = err ⇒
+    s"${YELLOW}Cannot open '${err.name}'$RESET"
 
-  override def listDevices(l: List[Info]): F[Unit] = l.traverse(info).void
+  private def info(i: Info) = i.getName + " -- " + i.getDescription
+
+  implicit val listDevices: Report[List[Info]] = l ⇒ "devices {" + l.map(info).mkString("\n") + "}"
 }

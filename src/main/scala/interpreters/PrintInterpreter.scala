@@ -1,4 +1,5 @@
 package interpreters
+
 import algebra.Print
 import cats.{ApplicativeError, Show}
 
