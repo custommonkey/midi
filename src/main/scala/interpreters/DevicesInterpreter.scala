@@ -36,7 +36,6 @@ class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwa
           .flatTap(_.open())
       } { d ⇒
         d.send(Messages.AllOff) >> d.close()
-      }
-      .flatMap(Resource.pure(_))
+      } >>= (Resource.pure(_))
 
 }

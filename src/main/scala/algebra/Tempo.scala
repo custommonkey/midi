@@ -7,9 +7,7 @@ import eu.timepit.refined.numeric.Positive
 import scala.concurrent.duration._
 
 case class Tempo(bpm: Int Refined Positive) {
-
   private val xx = 1.minute / bpm.toLong
-
 }
 
 object Tempo {

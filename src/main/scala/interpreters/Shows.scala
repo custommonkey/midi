@@ -2,6 +2,7 @@ package interpreters
 
 import cats.Show
 import cats.implicits._
+import javax.sound.midi.MidiDevice.Info
 import javax.sound.midi.{Instrument, Patch}
 
 object Shows {
@@ -11,5 +12,8 @@ object Shows {
     val name = instrument.getName.split("[ ()]").map(_.capitalize).mkString
     show"object $name extends ProgramChange(${instrument.getPatch.getProgram}) // ${instrument.getPatch.getBank}"
   }
+
+  implicit val showInfo: Show[Info] = info ⇒
+    show"${info.getName}, ${info.getDescription}, ${info.getVendor}, ${info.getVersion}"
 
 }

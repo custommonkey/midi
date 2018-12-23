@@ -5,9 +5,9 @@ version := "0.1"
 scalaVersion := "2.12.8"
 
 libraryDependencies ++= Seq(
-  "co.fs2"                     %% "fs2-core"                  % "1.0.0",
+//  "co.fs2"                     %% "fs2-core"                  % "1.0.0",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
-  "com.lihaoyi"                %% "fastparse"                 % "2.0.4",
+//  "com.lihaoyi"                %% "fastparse"                 % "2.0.4",
   "eu.timepit"                 %% "refined"                   % "0.9.3",
   "eu.timepit"                 %% "refined-scalacheck_1.13"   % "0.9.3" % Test,
   "org.scalacheck"             %% "scalacheck"                % "1.13.4" % Test,

@@ -15,4 +15,7 @@ class UtilsInterpreter[F[_]: Monad](api: MidiApi[F], println: Print[F], random: 
 
   override def showInstruments: F[Unit] =
     api.instruments >>= { _.traverse(println(_)).void }
+
+  override def showDevices: F[Unit] =
+    api.midiDeviceInfo >>= { _.traverse(println(_)).void }
 }

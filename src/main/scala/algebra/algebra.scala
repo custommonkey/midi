@@ -1,8 +1,11 @@
 package algebra
 
-import algebra.types.{Report, ToScore}
+import algebra.types.{Channel, ToScore}
 import cats.Show
 import cats.effect.Resource
+import eu.timepit.refined.W
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.numeric.Interval.Closed
 import javax.sound.midi.MidiDevice.Info
 import javax.sound.midi.{Instrument, MidiDevice, MidiMessage}
 
@@ -10,10 +13,11 @@ import scala.concurrent.duration.FiniteDuration
 
 object types {
   type Msg[T]     = T ⇒ MidiMessage
-  type Report[T]  = T ⇒ String
   type Thing      = Either[Note, FiniteDuration]
   type Score      = List[Thing]
   type ToScore[T] = T ⇒ Score
+  type Channel    = Int Refined Closed[W.`0`.T, W.`15`.T]
+  type Note       = (Int, FiniteDuration)
 
   object Msg {
     def apply[T](implicit instance: Msg[T]): Msg[T] = instance
@@ -26,8 +30,6 @@ object types {
 
 import algebra.types.Msg
 
-case class Note(n: Int, d: FiniteDuration)
-
 case class DeviceDef(name: String)
 
 trait Devices[F[_]] {
@@ -35,13 +37,13 @@ trait Devices[F[_]] {
 }
 
 trait Receiver[F[_]] {
-  def send[T](t: T, i: Long)(implicit msg: Msg[T], show: Show[T]): F[Unit]
+  def send[T: Msg: Show](t: T, i: Long): F[Unit]
 }
 
 trait Device[F[_]] {
   def send[T: Msg: Show](msg: T): F[Unit]
 //  def randomProgram: F[Unit]
-  def bleep[T: ToScore](t: T): F[Unit]
+  def <<[T](t: T)(implicit c: Channel, s: ToScore[T]): F[Unit]
 }
 
 trait MidiApi[F[_]] {
@@ -52,20 +54,21 @@ trait MidiApi[F[_]] {
 }
 
 trait Reports[F[_]] {
-  def report[E: Report](e: E): F[Unit]
+  def report[E: Show](e: E): F[Unit]
 }
 
 trait Print[F[_]] {
-  def apply[T](value: T)(implicit show: Show[T]): F[Unit]
+  def apply[T: Show](value: T): F[Unit]
 }
 
 trait Utils[F[_]] {
   def showInstruments: F[Unit]
+  def showDevices: F[Unit]
   def randomProgram(device: Device[F]): F[Unit]
 }
 
 trait RandomApi[F[_]] {
-  def apply[T](implicit random: Random[T]): F[T]
+  def apply[T: Random]: F[T]
 }
 
 trait Random[T] {

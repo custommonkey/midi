@@ -1,6 +1,6 @@
 package algebra
 import algebra.Messages.ProgramChange
-import algebra.types.{Msg, ToScore}
+import algebra.types.{Channel, Msg, ToScore}
 import cats.Show
 import cats.effect._
 import devices.Gervill
@@ -15,8 +15,8 @@ class DevicesSpec extends WordSpec with MustMatchers with ScalacheckShapeless wi
 
       val devices = new Devices[IO] {
         val device = new Device[IO] {
-          override def send[T: Msg: Show](msg: T): IO[Unit] = IO.unit
-          override def bleep[T: ToScore](t: T): IO[Unit]    = ???
+          override def send[T: Msg: Show](msg: T): IO[Unit]                      = IO.unit
+          override def <<[T](t: T)(implicit c: Channel, s: ToScore[T]): IO[Unit] = ???
         }
         override def open(name: DeviceDef): Resource[IO, Device[IO]] = Resource.pure(device)
       }
