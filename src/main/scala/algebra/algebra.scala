@@ -1,32 +1,55 @@
 package algebra
 
-import algebra.types.{Channel, ToScore}
+import algebra.types.{Channel, Nint, Score}
 import cats.Show
 import cats.effect.Resource
 import eu.timepit.refined.W
-import eu.timepit.refined.api.Refined
+import eu.timepit.refined.api.{RefType, Refined}
 import eu.timepit.refined.numeric.Interval.Closed
+import eu.timepit.refined.numeric.{NonNegative, Positive}
 import javax.sound.midi.MidiDevice.Info
 import javax.sound.midi.{Instrument, MidiDevice, MidiMessage}
 
 import scala.concurrent.duration.FiniteDuration
 
 object types {
-  type Msg[T]     = T ⇒ MidiMessage
-  type Thing      = Either[Note, FiniteDuration]
-  type Score      = List[Thing]
-  type ToScore[T] = T ⇒ Score
-  type Channel    = Int Refined Closed[W.`0`.T, W.`15`.T]
-  type Note       = (Int, FiniteDuration)
+  type Msg[T]    = T ⇒ MidiMessage
+  type Score     = List[NoteOrRest]
+  type Channel   = Int Refined Closed[W.`0`.T, W.`15`.T]
+  type Nint      = Int Refined Positive
+  type Timestamp = Int Refined NonNegative
+
+  object Nint {
+    implicit val randomNint: Random[Nint] = () ⇒
+      RefType.applyRef[Nint].unsafeFrom(scala.util.Random.nextInt() + 1)
+    def +(n: Nint, i: Int): Nint = RefType.applyRef[Nint].unsafeFrom(n.value + i)
+  }
+  object Timestamp {
+    implicit val randomTimestamp: Random[Timestamp] = () ⇒
+      RefType.applyRef[Timestamp].unsafeFrom(scala.util.Random.nextInt() + 1)
+    implicit class TimestampOps(n: Timestamp) {
+      def +(i: FiniteDuration): Timestamp =
+        RefType.applyRef[Timestamp].unsafeFrom(n.value + i.toMillis.toInt)
+      def +(i: Timestamp): Timestamp =
+        RefType.applyRef[Timestamp].unsafeFrom(n.value + i.value)
+    }
+  }
 
   object Msg {
     def apply[T](implicit instance: Msg[T]): Msg[T] = instance
   }
-  object Thing {
-    def apply(n: Note): Thing           = Left(n)
-    def apply(n: FiniteDuration): Thing = Right(n)
-  }
 }
+
+trait ToScore[T] {
+  def apply(t: T): Score
+}
+
+sealed trait NoteOrRest {
+  def duration: FiniteDuration
+}
+
+final case class Note(n: Nint, duration: FiniteDuration) extends NoteOrRest
+final case class Rest(duration: FiniteDuration)          extends NoteOrRest
 
 import algebra.types.Msg
 
@@ -68,7 +91,7 @@ trait Utils[F[_]] {
 }
 
 trait RandomApi[F[_]] {
-  def apply[T: Random]: F[T]
+  def apply[T](implicit r: Random[T]): F[T]
 }
 
 trait Random[T] {

@@ -23,7 +23,7 @@ class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwa
   private def findInfo(name: String): F[NonEmptyChain[Info]] =
     api.midiDeviceInfo
       .map(_.filter(_.getName == name))
-      .map(NonEmptyChain.fromSeq(_)) >>= {
+      .map(NonEmptyChain.fromSeq) >>= {
       case Some(value) ⇒ value.pure[F]
       case None        ⇒ F.raiseError(DeviceNotFound(name))
     }
@@ -33,9 +33,9 @@ class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwa
       .make {
         (findInfo(device.name) >>= findReceivers)
           .map(new DeviceInterpreter(_, api, timer))
-          .flatTap(_.open())
+          .flatTap(_.open)
       } { d ⇒
-        d.send(Messages.AllOff) >> d.close()
+        d.send(Messages.AllOff) >> d.close
       } >>= (Resource.pure(_))
 
 }

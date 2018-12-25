@@ -1,8 +1,8 @@
 package interpreters
 
 import algebra.Messages.{NoteOff, NoteOn}
-import algebra.types.{Channel, Msg, ToScore}
-import algebra.{Device, MidiApi, Receiver}
+import algebra.types.{Channel, Msg}
+import algebra.{Device, MidiApi, Note, Receiver, Rest, ToScore}
 import cats.effect.Timer
 import cats.implicits._
 import cats.{MonadError, Show}
@@ -18,12 +18,12 @@ class DeviceInterpreter[F[_]](val device: MidiDevice, api: MidiApi[F], timer: Ti
 
   override def <<[T](value: T)(implicit ch: Channel, toScore: ToScore[T]): F[Unit] =
     toScore(value).traverse {
-      case Left((i, b)) ⇒
+      case Note(i, b) ⇒
         send(NoteOn(i, ch)) >> timer.sleep(b) >> send(NoteOff(i, ch))
-      case Right(d) ⇒
+      case Rest(d) ⇒
         timer.sleep(d)
     }.void
 
-  def close(): F[Unit] = F.catchNonFatal(device.close())
-  def open(): F[Unit]  = F.catchNonFatal(device.open())
+  def close: F[Unit] = F.catchNonFatal(device.close())
+  def open: F[Unit]  = F.catchNonFatal(device.open())
 }

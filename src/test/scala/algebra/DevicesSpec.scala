@@ -1,6 +1,6 @@
 package algebra
 import algebra.Messages.ProgramChange
-import algebra.types.{Channel, Msg, ToScore}
+import algebra.types.{Channel, Msg}
 import cats.Show
 import cats.effect._
 import devices.Gervill

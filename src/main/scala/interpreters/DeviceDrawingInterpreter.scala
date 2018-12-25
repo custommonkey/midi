@@ -1,7 +1,7 @@
 package interpreters
 
-import algebra.Device
-import algebra.types.{Channel, Msg, ToScore}
+import algebra.{Device, ToScore}
+import algebra.types.{Channel, Msg}
 import cats.Show
 
 class DeviceDrawingInterpreter[F[_]](val device: Device[F]) extends Device[F] {

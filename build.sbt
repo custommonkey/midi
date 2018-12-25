@@ -5,15 +5,15 @@ version := "0.1"
 scalaVersion := "2.12.8"
 
 libraryDependencies ++= Seq(
-//  "co.fs2"                     %% "fs2-core"                  % "1.0.0",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
-//  "com.lihaoyi"                %% "fastparse"                 % "2.0.4",
   "eu.timepit"                 %% "refined"                   % "0.9.3",
+  "eu.timepit"                 %% "refined-cats"              % "0.9.3",
   "eu.timepit"                 %% "refined-scalacheck_1.13"   % "0.9.3" % Test,
   "org.scalacheck"             %% "scalacheck"                % "1.13.4" % Test,
   "org.scalamock"              %% "scalamock"                 % "4.1.0" % Test,
   "org.scalatest"              %% "scalatest"                 % "3.0.5" % Test,
   "org.typelevel"              %% "cats-core"                 % "1.4.0",
+  "org.typelevel"              %% "cats-effect"               % "1.1.0",
   "org.typelevel"              %% "cats-testkit"              % "1.4.0" % Test,
   "org.typelevel"              %% "kittens"                   % "1.2.0"
 )
