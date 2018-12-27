@@ -2,7 +2,7 @@ package interpreters
 
 import algebra.Messages.ProgramChange
 import algebra.types.Msg
-import algebra.{MidiApi, Receiver}
+import algebra.{MidiApi, Print, Receiver}
 import cats.Show
 import cats.effect.Timer
 import cats.implicits._
@@ -25,6 +25,7 @@ class DeviceInterpreterSpec
   private val api        = mock[MidiApi[Error]]
   private val timer      = mock[Timer[Error]]
   private val receiver   = mock[Receiver[Error]]
+  private val print      = mock[Print[Error]]
 
   "Device" should {
     "do something" in {
@@ -33,11 +34,10 @@ class DeviceInterpreterSpec
         .expects(midiDevice)
         .returning(Right(receiver))
 
-      val device = new DeviceInterpreter[Error](midiDevice, api, timer)
+      val device = new DeviceInterpreter[Error](midiDevice, api, timer, print)
 
       forAll { msg: ProgramChange ⇒
-        (receiver
-          .send(_: ProgramChange, _: Long)(_: Msg[ProgramChange], _: Show[ProgramChange]))
+        (receiver(_: ProgramChange, _: Long)(_: Msg[ProgramChange], _: Show[ProgramChange]))
           .expects(msg, 0l, Msg[ProgramChange], Show[ProgramChange])
           .returning(Right(()))
 

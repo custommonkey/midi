@@ -40,8 +40,8 @@ class DrawSpec extends WordSpec with Arbitraries with EventAlgebra with Property
 
     notes.foldLeft(0l) {
       case (offset, Note(n, d)) ⇒
-        val x: Float = (offset + d.toMillis) * scale
-        val y        = n.value * 5
+        val x = (offset + d.toMillis) * scale
+        val y = n.value * 5
         g.fillRect(x.toInt, y, (d.toMillis * scale).toInt, 5)
         offset + d.toMillis
       case (offset, Rest(d)) ⇒

@@ -1,32 +1,19 @@
 package algebra
 
-import algebra.types.{Nint, Timestamp}
-import cats.Monoid
-import Timestamp.TimestampOps
+import algebra.types.Timestamp
+import algebra.types.Timestamp.TimestampOps
 import eu.timepit.refined.auto._
+import cats.implicits._
+
+import scala.concurrent.duration._
 
 trait EventAlgebra {
 
-  sealed trait EvType
-  case object On  extends EvType
-  case object Off extends EvType
+  private def nil[T]: (List[Event[T]], Timestamp) = (List(), 0l)
 
-  case class Event(e: EvType, n: Nint, t: Timestamp)
-  case class Events(events: List[Event])
-
-  object Events {
-    def apply(events: Event*): Events = new Events(events.to)
-    implicit def monoidEvents[F[_]]: Monoid[Events] = new Monoid[Events] {
-      override def empty: Events                         = Events(List())
-      override def combine(x: Events, y: Events): Events = Events(x.events ::: y.events)
-    }
-  }
-
-  private val nil: (List[Event], Timestamp) = (List(), 0)
-
-  def score(notes: List[NoteOrRest]): Events = Events {
+  def score(notes: List[NoteOrRest]): Events[Timestamp] = Events {
     notes
-      .foldLeft(nil) {
+      .foldLeft(nil[Timestamp]) {
         case ((list, last), Note(n, duration)) ⇒
           (list :+ Event(On, n, last) :+ Event(Off, n, last + duration), last + duration)
         case ((list, last), Rest(duration)) ⇒
@@ -35,6 +22,16 @@ trait EventAlgebra {
       ._1
   }
 
-  def score(n: NoteOrRest*): Events = score(n.toList)
+  def score(n: NoteOrRest*): Events[Timestamp] = score(n.toList)
+
+  def blo(events: Events[Timestamp]): Events[FiniteDuration] =
+    Events(
+      events.events
+        .foldLeft(nil[FiniteDuration]) {
+          case ((list, last), e @ Event(_, _, timestamp)) ⇒
+            (list :+ e.as(timestamp - last), timestamp)
+        }
+        ._1
+    )
 
 }

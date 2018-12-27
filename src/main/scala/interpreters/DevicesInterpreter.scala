@@ -1,7 +1,7 @@
 package interpreters
 
-import algebra.{Device, DeviceDef, Devices, Messages, MidiApi}
 import algebra.errors.{DeviceNotFound, NoReceivers}
+import algebra.{Device, DeviceDef, Devices, Messages, MidiApi}
 import cats.MonadError
 import cats.data.NonEmptyChain
 import cats.effect.{Resource, Timer}
@@ -9,8 +9,9 @@ import cats.implicits._
 import javax.sound.midi.MidiDevice
 import javax.sound.midi.MidiDevice.Info
 
-class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwable],
-                                                timer: Timer[F])
+class DevicesInterpreter[F[_]](api: MidiApi[F], println: PrintInterpreter[F])(
+    implicit F: MonadError[F, Throwable],
+    timer: Timer[F])
     extends Devices[F] {
 
   def findReceivers(list: NonEmptyChain[Info]): F[MidiDevice] = list.traverse(api.midiDevice) >>= {
@@ -32,7 +33,7 @@ class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwa
     Resource
       .make {
         (findInfo(device.name) >>= findReceivers)
-          .map(new DeviceInterpreter(_, api, timer))
+          .map(new DeviceInterpreter(_, api, timer, println))
           .flatTap(_.open)
       } { d ⇒
         d.send(Messages.AllOff) >> d.close

@@ -1,4 +1,4 @@
-import algebra.{NoteOrRest, Note, Tempo, ToScore}
+import algebra.{Note, NoteOrRest, Tempo, ToScore}
 import algebra.errors.{AppError, DeviceNotFound, NoReceivers}
 import algebra.types.Channel
 import cats.effect.ExitCode.{Error, Success}

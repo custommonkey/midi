@@ -1,14 +1,13 @@
-import algebra.{Note, Tempo}
 import algebra.Tempo.BeatOps
-import algebra.types.Nint
+import algebra.types.MidiInt
+import algebra.types.MidiInt._
+import algebra.{EventAlgebra, Note, Rest, Tempo}
 import cats.effect.IO
-import cats.effect.IO.sleep
 import cats.implicits._
 import devices.Gervill
 import eu.timepit.refined.auto._
-import Nint.randomNint
 
-object Play extends PlayApp {
+object Play extends PlayApp with EventAlgebra {
 
   tempo = Tempo(160)
 
@@ -16,13 +15,14 @@ object Play extends PlayApp {
     devices open Gervill use { device ⇒
       import utils._
 
-      val notes: IO[List[Nint]] = List.fill(4)(random[Nint]).sequence
-      val bars: IO[List[Nint]]  = List.fill(8)(notes).sequence.map(_.flatten)
+      val notes: IO[List[MidiInt]] = List.fill(4)(random[MidiInt]).sequence
+      val bars: IO[List[MidiInt]]  = List.fill(8)(notes).sequence.map(_.flatten)
 
-      def boom(i: Nint): IO[Unit] = device << Note(i, 1.semiquaver) >> sleep(1.semiquaver)
+      def boom(i: MidiInt): IO[Unit] =
+        device << blo(score(Note(i, 1.semiquaver), Rest(1.semiquaver)))
 
       val leftHand  = bars.map(_.traverse(boom).void)
-      val rightHand = bars.map(_.map(Nint.+(_, 12)).traverse(boom)).void
+      val rightHand = bars.map(_.map(_ + 12).traverse(boom)).void
 
       showDevices >>
         showInstruments >>

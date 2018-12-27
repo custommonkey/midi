@@ -11,7 +11,7 @@ class MidiApiIntepreter[F[_]](println: Print[F])(implicit F: ApplicativeError[F,
     extends MidiApi[F] {
 
   class ReceiverInterpreter(r: javax.sound.midi.Receiver) extends Receiver[F] {
-    override def send[T: Msg: Show](message: T, i: Long): F[Unit] =
+    override def apply[T: Msg: Show](message: T, i: Long): F[Unit] =
       println(message) *> F.catchNonFatal(r.send(Msg[T].apply(message), i))
   }
 

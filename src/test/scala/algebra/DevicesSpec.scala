@@ -8,6 +8,8 @@ import org.scalacheck.ScalacheckShapeless
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{MustMatchers, WordSpec}
 
+import scala.concurrent.duration.FiniteDuration
+
 class DevicesSpec extends WordSpec with MustMatchers with ScalacheckShapeless with PropertyChecks {
 
   "devices" should {
@@ -15,8 +17,8 @@ class DevicesSpec extends WordSpec with MustMatchers with ScalacheckShapeless wi
 
       val devices = new Devices[IO] {
         val device = new Device[IO] {
-          override def send[T: Msg: Show](msg: T): IO[Unit]                      = IO.unit
-          override def <<[T](t: T)(implicit c: Channel, s: ToScore[T]): IO[Unit] = ???
+          override def send[T: Msg: Show](msg: T): IO[Unit]                              = IO.unit
+          override def <<(events: Events[FiniteDuration])(implicit c: Channel): IO[Unit] = ???
         }
         override def open(name: DeviceDef): Resource[IO, Device[IO]] = Resource.pure(device)
       }

@@ -7,7 +7,7 @@ import eu.timepit.refined.numeric.Interval.Closed
 import eu.timepit.refined.auto._
 import javax.sound.midi.ShortMessage
 import javax.sound.midi.ShortMessage._
-import algebra.types.{Channel, Msg, Nint}
+import algebra.types.{Channel, Msg, MidiInt}
 
 import scala.util.{Random ⇒ ScalaRandom}
 
@@ -21,7 +21,7 @@ object Messages {
 
   sealed class Status(private[Messages] val value: Int Refined Closed[W.`0`.T, W.`255`.T])
   sealed trait OnOff extends Status {
-    def note: Nint
+    def note: MidiInt
     def channel: Channel
   }
 
@@ -38,8 +38,8 @@ object Messages {
   case object MTCQuarterFrame                      extends Status(0xF1)
   case object SongSelect                           extends Status(SONG_SELECT)
   case object SongPositionPointer                  extends Status(SONG_POSITION_POINTER)
-  case class NoteOn(note: Nint, channel: Channel)  extends Status(NOTE_ON) with OnOff
-  case class NoteOff(note: Nint, channel: Channel) extends Status(NOTE_OFF) with OnOff
+  case class NoteOn(note: MidiInt, channel: Channel)  extends Status(NOTE_ON) with OnOff
+  case class NoteOff(note: MidiInt, channel: Channel) extends Status(NOTE_OFF) with OnOff
   case class ProgramChange(data: Int)              extends Status(PROGRAM_CHANGE)
 
   object ProgramChange {
