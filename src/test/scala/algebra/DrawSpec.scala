@@ -11,7 +11,7 @@ import javax.imageio.ImageIO
 import org.scalatest.WordSpec
 import org.scalatest.prop.PropertyChecks
 
-class DrawSpec extends WordSpec with Arbitraries with EventAlgebra with PropertyChecks {
+class DrawSpec extends WordSpec with Arbitraries with PropertyChecks {
 
   private val width  = 500
   private val height = 200

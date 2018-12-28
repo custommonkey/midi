@@ -1,8 +1,8 @@
 package algebra
 
-import algebra.types.{Channel, MidiInt, Score}
+import algebra.types.{Channel, MidiInt, Msg, Score}
+import cats.Show
 import cats.effect.Resource
-import cats.{Functor, Monoid, Show}
 import eu.timepit.refined.W
 import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined
@@ -11,8 +11,6 @@ import eu.timepit.refined.numeric.Interval.Closed
 import eu.timepit.refined.numeric.NonNegative
 import javax.sound.midi.MidiDevice.Info
 import javax.sound.midi.{Instrument, MidiDevice, MidiMessage}
-import cats.implicits._
-import algebra.types.Msg
 
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Random.nextInt
@@ -24,11 +22,12 @@ object types {
   type MidiInt   = Int Refined Closed[W.`1`.T, W.`128`.T]
   type Timestamp = Long Refined NonNegative
 
-  type Time = Long
-
   object MidiInt {
+
+    val Max: MidiInt = 128
+
     implicit val randomNint: Random[MidiInt] = () ⇒ applyRef[MidiInt].unsafeFrom(nextInt(127) + 1)
-    val Max: MidiInt                         = 128
+
     implicit class MidiIntOps(m: MidiInt) {
       def +(i: MidiInt): MidiInt = {
         val x = m.value + i.value
@@ -40,6 +39,7 @@ object types {
       }
     }
   }
+
   object Timestamp {
     implicit val randomTimestamp: Random[Timestamp] = () ⇒
       applyRef[Timestamp].unsafeFrom(scala.util.Random.nextLong() + 1)
@@ -63,6 +63,7 @@ trait ToScore[T] {
 
 sealed trait NoteOrRest {
   def duration: FiniteDuration
+  def +(n: NoteOrRest): Score = List(this, n)
 }
 
 final case class Note(n: MidiInt, duration: FiniteDuration) extends NoteOrRest
@@ -73,30 +74,6 @@ case class DeviceDef(name: String)
 sealed trait EvType
 case object On  extends EvType
 case object Off extends EvType
-
-case class Event[T](e: EvType, n: MidiInt, t: T)
-object Event {
-  implicit val functorEvent: Functor[Event] = new Functor[Event] {
-    override def map[A, B](fa: Event[A])(f: A ⇒ B): Event[B] = fa match {
-      case Event(evType, midiInt, t) ⇒ Event(evType, midiInt, f(t))
-    }
-  }
-
-}
-case class Events[T](events: List[Event[T]]) {
-  def +(e: Events[T]): Events[T] = this |+| e
-}
-
-object Events {
-  def apply[T](events: Event[T]*): Events[T] = new Events(events.to)
-  implicit def monoidEvents[F[_], T]: Monoid[Events[T]] = new Monoid[Events[T]] {
-    override def empty: Events[T]                               = Events(List())
-    override def combine(x: Events[T], y: Events[T]): Events[T] = Events(x.events ::: y.events)
-  }
-  implicit val functorEvents: Functor[Events] = new Functor[Events] {
-    override def map[A, B](fa: Events[A])(f: A ⇒ B): Events[B] = Events(fa.events.map(_.map(f)))
-  }
-}
 
 trait Devices[F[_]] {
   def open(name: DeviceDef): Resource[F, Device[F]]

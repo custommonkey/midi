@@ -12,10 +12,11 @@ import org.scalacheck.{Cogen, Shrink}
 import org.scalatest.FunSuite
 import cats.derived.auto.eq._
 import eu.timepit.refined.cats.refTypeEq
+import algebra.Events._
 
 import scala.concurrent.duration.FiniteDuration
 
-class ScoreSpec extends FunSuite with Arbitraries with CatsSuite with EventAlgebra {
+class EventsSpec extends FunSuite with Arbitraries with CatsSuite {
 
   implicit val shrinkLong: Shrink[Long] = Shrink[Long] { l ⇒
     if (l > 0) {
@@ -42,13 +43,13 @@ class ScoreSpec extends FunSuite with Arbitraries with CatsSuite with EventAlgeb
     forAll { x: NoteOrRest ⇒
       x match {
         case n: Note ⇒
-          score(n) should be(
-            Events[Timestamp](
-              Event[Timestamp](On, n.n, 0l),
+          List(n).events should be(
+            Events(
+              Event(On, n.n, 0l),
               Event(Off, n.n, timestamp(n))
             ))
         case r: Rest ⇒
-          score(r) should be(Events())
+          List(r).events should be(Events())
       }
     }
   }
@@ -58,9 +59,9 @@ class ScoreSpec extends FunSuite with Arbitraries with CatsSuite with EventAlgeb
 
   test("Note + Note => S") {
     forAll { (n1: Note, n2: Note) ⇒
-      score(n1, n2) should be(
-        Events[Timestamp](
-          Event[Timestamp](On, n1.n, 0l),
+      (n1 + n2).events should be(
+        Events(
+          Event(On, n1.n, 0l),
           Event(Off, n1.n, timestamp(n1)),
           Event(On, n2.n, timestamp(n1)),
           Event(Off, n2.n, timestamp(n1) + timestamp(n2))
@@ -70,9 +71,9 @@ class ScoreSpec extends FunSuite with Arbitraries with CatsSuite with EventAlgeb
 
   test("Note + Rest => S") {
     forAll { (note: Note, rest: Rest) ⇒
-      score(note, rest) should be(
-        Events[Timestamp](
-          Event[Timestamp](On, note.n, 0l),
+      (note + rest).events should be(
+        Events(
+          Event(On, note.n, 0l),
           Event(Off, note.n, timestamp(note))
         ))
     }
@@ -80,13 +81,13 @@ class ScoreSpec extends FunSuite with Arbitraries with CatsSuite with EventAlgeb
 
   test("Rest + Rest => S") {
     forAll { (r1: Rest, r2: Rest) ⇒
-      score(r1, r2) should be(Events())
+      (r1 + r2).events should be(Events())
     }
   }
 
   test("Rest + Note => S") {
     forAll { (rest: Rest, note: Note) ⇒
-      score(rest, note) should be(
+      (rest + note).events should be(
         Events(
           Event(On, note.n, timestamp(rest)),
           Event(Off, note.n, timestamp(rest) + timestamp(note))
@@ -96,7 +97,7 @@ class ScoreSpec extends FunSuite with Arbitraries with CatsSuite with EventAlgeb
 
   test("List[Note] => S") {
     forAll { ns: List[Note] ⇒
-      val events = score(ns).events
+      val events = ns.events.events
       ns match {
         case Nil ⇒
         case n1 :: _ ⇒
@@ -105,6 +106,17 @@ class ScoreSpec extends FunSuite with Arbitraries with CatsSuite with EventAlgeb
           val sum = ns.map(_.duration.toMillis).sum
           events.last should be(Event(Off, ns.last.n, timestamp(sum)))
       }
+    }
+  }
+
+  test("durations") {
+    forAll { (n1: List[Note], n2: List[Note]) ⇒
+      (n1 ::: n2).events.durations
+    }
+  }
+  test("durations &") {
+    forAll { (n1: List[Note], n2: List[Note]) ⇒
+      (n1.events & n2.events).durations
     }
   }
 

@@ -13,34 +13,28 @@ import scala.util.{Random ⇒ ScalaRandom}
 
 object Messages {
 
-//  object Bite {
-//    implicit val rand: Rand[Int] = () ⇒ RefType.applyRef[Bite].unsafeFrom(Random.nextInt(127))
-//  }
-
-  type Rand[T] = () ⇒ T
-
   sealed class Status(private[Messages] val value: Int Refined Closed[W.`0`.T, W.`255`.T])
   sealed trait OnOff extends Status {
     def note: MidiInt
     def channel: Channel
   }
 
-  case object TuneRequest                          extends Status(TUNE_REQUEST)
-  case object Eox                                  extends Status(END_OF_EXCLUSIVE)
-  case object TimingClock                          extends Status(TIMING_CLOCK)
-  case object Undefined                            extends Status(0xF9)
-  case object Start                                extends Status(START)
-  case object Continue                             extends Status(CONTINUE)
-  case object Stop                                 extends Status(STOP)
-  case object Undefined2                           extends Status(0xFD)
-  case object ActiveSensing                        extends Status(ACTIVE_SENSING)
-  case object SystemReset                          extends Status(SYSTEM_RESET)
-  case object MTCQuarterFrame                      extends Status(0xF1)
-  case object SongSelect                           extends Status(SONG_SELECT)
-  case object SongPositionPointer                  extends Status(SONG_POSITION_POINTER)
+  case object TuneRequest                             extends Status(TUNE_REQUEST)
+  case object Eox                                     extends Status(END_OF_EXCLUSIVE)
+  case object TimingClock                             extends Status(TIMING_CLOCK)
+  case object Undefined                               extends Status(0xF9)
+  case object Start                                   extends Status(START)
+  case object Continue                                extends Status(CONTINUE)
+  case object Stop                                    extends Status(STOP)
+  case object Undefined2                              extends Status(0xFD)
+  case object ActiveSensing                           extends Status(ACTIVE_SENSING)
+  case object SystemReset                             extends Status(SYSTEM_RESET)
+  case object MTCQuarterFrame                         extends Status(0xF1)
+  case object SongSelect                              extends Status(SONG_SELECT)
+  case object SongPositionPointer                     extends Status(SONG_POSITION_POINTER)
   case class NoteOn(note: MidiInt, channel: Channel)  extends Status(NOTE_ON) with OnOff
   case class NoteOff(note: MidiInt, channel: Channel) extends Status(NOTE_OFF) with OnOff
-  case class ProgramChange(data: Int)              extends Status(PROGRAM_CHANGE)
+  case class ProgramChange(data: Int)                 extends Status(PROGRAM_CHANGE)
 
   object ProgramChange {
     implicit val msg: Msg[ProgramChange]           = pc ⇒ mkMsg(pc, pc.data, 0)

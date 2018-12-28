@@ -1,13 +1,14 @@
 import algebra.Tempo.BeatOps
 import algebra.types.MidiInt
 import algebra.types.MidiInt._
-import algebra.{EventAlgebra, Note, Rest, Tempo}
+import algebra.{Note, Rest, Tempo}
 import cats.effect.IO
 import cats.implicits._
 import devices.Gervill
 import eu.timepit.refined.auto._
+import algebra.Events.ScoreOps
 
-object Play extends PlayApp with EventAlgebra {
+object Play extends PlayApp {
 
   tempo = Tempo(160)
 
@@ -19,7 +20,7 @@ object Play extends PlayApp with EventAlgebra {
       val bars: IO[List[MidiInt]]  = List.fill(8)(notes).sequence.map(_.flatten)
 
       def boom(i: MidiInt): IO[Unit] =
-        device << blo(score(Note(i, 1.semiquaver), Rest(1.semiquaver)))
+        device << (Note(i, 1.semiquaver) + Rest(1.semiquaver)).events.durations
 
       val leftHand  = bars.map(_.traverse(boom).void)
       val rightHand = bars.map(_.map(_ + 12).traverse(boom)).void
