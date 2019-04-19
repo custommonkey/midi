@@ -1,3 +1,5 @@
-addSbtPlugin("com.geirsson"  % "sbt-scalafmt"  % "1.5.1")
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.0.0")
+//addSbtPlugin("com.geirsson"  % "sbt-scalafmt"  % "2.0.0-RC4")
+addSbtPlugin("org.scoverage"             % "sbt-scoverage" % "1.5.1")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat"  % "0.1.6")
 //addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")

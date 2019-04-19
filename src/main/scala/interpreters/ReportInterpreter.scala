@@ -15,11 +15,11 @@ class ReportInterpreter[F[_]](println: Print[F]) extends Reports[F] {
   override def report[T](e: T)(implicit show: Show[T]): F[Unit] =
     println(show.show(e))
 
-  implicit val noReceivers: Show[NoReceivers] = err ⇒
+  implicit val noReceivers: Show[NoReceivers] = err =>
     s"NoReceivers ${err.info.toList.mkString(", ")}"
 
-  implicit val deviceNotFound: Show[DeviceNotFound] = err ⇒
+  implicit val deviceNotFound: Show[DeviceNotFound] = err =>
     s"${YELLOW}Cannot open '${err.name}'$RESET"
 
-  implicit val listDevices: Show[List[Info]] = l ⇒ "devices {" + l.map(info).mkString("\n") + "}"
+  implicit val listDevices: Show[List[Info]] = l => "devices {" + l.map(info).mkString("\n") + "}"
 }

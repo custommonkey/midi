@@ -7,9 +7,9 @@ import eu.timepit.refined.numeric.Interval.Closed
 import eu.timepit.refined.auto._
 import javax.sound.midi.ShortMessage
 import javax.sound.midi.ShortMessage._
-import algebra.types.{Channel, Msg, MidiInt}
+import algebra.types.{Channel, MidiInt, Msg}
 
-import scala.util.{Random ⇒ ScalaRandom}
+import scala.util.{Random => ScalaRandom}
 
 object Messages {
 
@@ -37,21 +37,21 @@ object Messages {
   case class ProgramChange(data: Int)                 extends Status(PROGRAM_CHANGE)
 
   object ProgramChange {
-    implicit val msg: Msg[ProgramChange]           = pc ⇒ mkMsg(pc, pc.data, 0)
-    implicit def show[T <: ProgramChange]: Show[T] = pc ⇒ s"program change ${pc.data}"
-    implicit val random: Random[ProgramChange]     = () ⇒ ProgramChange(ScalaRandom.nextInt(127))
+    implicit val msg: Msg[ProgramChange]           = pc => mkMsg(pc, pc.data, 0)
+    implicit def show[T <: ProgramChange]: Show[T] = pc => s"program change ${pc.data}"
+    implicit val random: Random[ProgramChange]     = () => ProgramChange(ScalaRandom.nextInt(127))
   }
 
   object OnOff {
-    implicit val msg: Msg[OnOff] = (n: OnOff) ⇒ mkMsg(n, n.channel, n.note, 100)
+    implicit val msg: Msg[OnOff] = (n: OnOff) => mkMsg(n, n.channel, n.note, 100)
   }
 
   object NoteOff {
-    implicit val show: Show[NoteOff] = n ⇒ s"off $n"
+    implicit val show: Show[NoteOff] = n => s"off $n"
   }
 
   object NoteOn {
-    implicit val show: Show[NoteOn] = n ⇒ s"on $n"
+    implicit val show: Show[NoteOn] = n => s"on $n"
   }
 
   class ControlChange(private[Messages] val value: Int, private[Messages] val data: Int)
@@ -61,8 +61,8 @@ object Messages {
 
   object ControlChange {
     implicit def msg[T <: ControlChange]: Msg[T] =
-      cc ⇒ new ShortMessage(CONTROL_CHANGE, cc.value, cc.data)
-    implicit def show[T <: ControlChange]: Show[T] = cc ⇒ s"CC $cc"
+      cc => new ShortMessage(CONTROL_CHANGE, cc.value, cc.data)
+    implicit def show[T <: ControlChange]: Show[T] = cc => s"CC $cc"
   }
 
   private def mkMsg(status: Status, chl: Int, data1: Int, data2: Int) =

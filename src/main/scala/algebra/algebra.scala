@@ -14,20 +14,21 @@ import javax.sound.midi.{Instrument, MidiDevice, MidiMessage}
 
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Random.nextInt
+import Events.Events
 
 object types {
-  type Msg[T]      = T ⇒ MidiMessage
+  type Msg[T]      = T => MidiMessage
   type Score       = List[NoteOrRest]
   type Channel     = Int Refined Closed[W.`0`.T, W.`15`.T]
   type MidiInt     = Int Refined Closed[W.`1`.T, W.`128`.T]
   type Timestamp   = Long Refined NonNegative
-  type Sleep[F[_]] = FiniteDuration ⇒ F[Unit]
+  type Sleep[F[_]] = FiniteDuration => F[Unit]
 
   object MidiInt {
 
     val Max: MidiInt = 128
 
-    implicit val randomNint: Random[MidiInt] = () ⇒ applyRef[MidiInt].unsafeFrom(nextInt(127) + 1)
+    implicit val randomNint: Random[MidiInt] = () => applyRef[MidiInt].unsafeFrom(nextInt(127) + 1)
 
     implicit class MidiIntOps(m: MidiInt) {
       def +(i: MidiInt): MidiInt = {
@@ -42,10 +43,10 @@ object types {
   }
 
   object Timestamp {
-    implicit val randomTimestamp: Random[Timestamp] = () ⇒
+    implicit val randomTimestamp: Random[Timestamp] = () =>
       applyRef[Timestamp].unsafeFrom(scala.util.Random.nextLong() + 1)
     implicit class TimestampOps(n: Timestamp) {
-      private def op(f: Long ⇒ Long) =
+      private def op(f: Long => Long) =
         applyRef[Timestamp].unsafeFrom(f(n.value))
       def +(i: FiniteDuration): Timestamp = op(_ + i.toMillis.toInt)
       def +(i: Timestamp): Timestamp      = op(_ + i.value)
@@ -86,7 +87,7 @@ trait Receiver[F[_]] {
 
 trait Device[F[_]] {
   def apply[T: Msg](msg: T): F[Unit]
-  def apply(events: Events[FiniteDuration])(implicit channel: Channel): F[Unit]
+  def apply(events: Events[Event[FiniteDuration]])(implicit channel: Channel): F[Unit]
 }
 
 trait MidiApi[F[_]] {
@@ -119,7 +120,7 @@ trait Random[T] {
 }
 object Random {
   implicit def randomList[T](implicit random: Random[T]): Random[List[T]] =
-    () ⇒ List.fill(10)(random())
+    () => List.fill(10)(random())
 }
 
 trait Algebra[F[_]] {

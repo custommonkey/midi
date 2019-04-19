@@ -6,14 +6,14 @@ import cats.effect.IO
 import cats.implicits._
 import devices.Gervill
 import eu.timepit.refined.auto._
-import algebra.Events.ScoreOps
+import algebra.Events._
 
 object Play extends PlayApp {
 
   tempo = Tempo(160)
 
   override def play: IO[Any] =
-    devices open Gervill use { gervill ⇒
+    devices open Gervill use { gervill =>
       import utils._
 
       val notes: IO[List[MidiInt]] = List.fill(4)(random[MidiInt]).sequence
@@ -29,10 +29,10 @@ object Play extends PlayApp {
         showInstruments >>
         gervill(Gervill.AcousticGrandPiano) >>
         (for {
-          left  ← leftHand.start
-          right ← rightHand.start
-          _     ← left.join
-          _     ← right.join
+          left  <- leftHand.start
+          right <- rightHand.start
+          _     <- left.join
+          _     <- right.join
         } yield ())
     }
 }

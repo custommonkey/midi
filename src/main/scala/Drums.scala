@@ -1,4 +1,4 @@
-import algebra.Events.ScoreOps
+import algebra.Events._
 import algebra.Messages.ControlChange._
 import algebra.Note
 import algebra.Tempo.BeatOps
@@ -21,8 +21,8 @@ object Drums extends PlayApp {
   override def play: IO[Any] =
     devices
       .open(UnoMidiInterface)
-      .use { nord ⇒
-        nord(ToneDecay(10)) >> nord(s.durations) >>
+      .use { nord =>
+        nord(ToneDecay(10)) >> nord.apply(s.durations) >>
           nord(ToneDecay(20)) >> nord(s.durations) >>
           nord(ToneDecay(30)) >> nord(s.durations) >>
           nord(ToneDecay(40)) >> nord(s.durations) >>

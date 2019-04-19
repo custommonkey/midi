@@ -17,8 +17,8 @@ class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwa
 
   def findReceivers(list: NonEmptyChain[Info]): F[MidiDevice] = list.traverse(api.midiDevice) >>= {
     _.find(_.getMaxReceivers != 0) match {
-      case Some(value) ⇒ F.pure(value)
-      case None        ⇒ F.raiseError(NoReceivers(list))
+      case Some(value) => F.pure(value)
+      case None        => F.raiseError(NoReceivers(list))
     }
   }
 
@@ -26,8 +26,8 @@ class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwa
     api.midiDeviceInfo
       .map(_.filter(_.getName == name))
       .map(NonEmptyChain.fromSeq) >>= {
-      case Some(value) ⇒ value.pure[F]
-      case None        ⇒ F.raiseError(DeviceNotFound(name))
+      case Some(value) => value.pure[F]
+      case None        => F.raiseError(DeviceNotFound(name))
     }
 
   override def open(deviceDef: DeviceDef): Resource[F, Device[F]] =
@@ -36,7 +36,7 @@ class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwa
         (findInfo(deviceDef.name) >>= findReceivers)
           .map(new DeviceInterpreter(_, api, sleep))
           .flatTap(_.open)
-      } { device ⇒
+      } { device =>
         device(AllOff) >> device.close
       } >>= (Resource.pure(_))
 

@@ -14,7 +14,7 @@ object NordDrum2 {
 
   private def cc(c: Int)(d: Int) = NordDrum2(c, d)
 
-  type Nord = Int ⇒ NordDrum2
+  type Nord = Int => NordDrum2
 
   val Level: Nord                = cc(7)
   val Pan: Nord                  = cc(10)
@@ -94,5 +94,6 @@ object NordDrum2 {
     ChannelFocus
   )
 
-  implicit val randomChange: Random[NordDrum2] = () ⇒ controls(nextInt(controls.size))(nextInt(Byte.MaxValue))
+  implicit val randomChange: Random[NordDrum2] = () =>
+    controls(nextInt(controls.size))(nextInt(Byte.MaxValue))
 }

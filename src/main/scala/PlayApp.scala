@@ -10,11 +10,11 @@ import javax.sound.midi.MidiDevice.Info
 
 trait PlayApp extends IOApp with AllInterpreters {
 
-  implicit val tup: ToScore[Note]                      = (i: Note) ⇒ List(i)
-  implicit def list[T <: NoteOrRest]: ToScore[List[T]] = (l: List[T]) ⇒ l
+  implicit val tup: ToScore[Note]                      = (i: Note) => List(i)
+  implicit def list[T <: NoteOrRest]: ToScore[List[T]] = (l: List[T]) => l
   implicit var tempo: Tempo                            = Tempo(120)
   implicit var channel: Channel                        = 0
-  override implicit protected def sleep: Sleep[IO] = timer.sleep
+  override implicit protected def sleep: Sleep[IO]     = timer.sleep
 
   def play: IO[Any]
 
@@ -25,10 +25,10 @@ trait PlayApp extends IOApp with AllInterpreters {
     play
       .as(Success)
       .recoverWith {
-        case err: AppError ⇒ {
+        case err: AppError => {
           err match {
-            case e: NoReceivers    ⇒ report(e)
-            case e: DeviceNotFound ⇒ report(e)
+            case e: NoReceivers    => report(e)
+            case e: DeviceNotFound => report(e)
           }
         } >> (api.midiDeviceInfo >>= report[List[Info]]) >> IO(Error)
       }
