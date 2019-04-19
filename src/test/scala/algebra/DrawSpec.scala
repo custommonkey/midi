@@ -32,11 +32,7 @@ class DrawSpec extends WordSpec with Arbitraries with PropertyChecks {
         a + gote.duration.toMillis
     }
 
-    println(s"sum = $sum")
-
     val scale: Float = width.toFloat / sum
-
-    println(s"scale = $scale")
 
     notes.foldLeft(0l) {
       case (offset, Note(n, d)) ⇒

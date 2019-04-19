@@ -1,7 +1,6 @@
 package algebra
 import algebra.Messages.ProgramChange
 import algebra.types.{Channel, Msg}
-import cats.Show
 import cats.effect._
 import devices.Gervill
 import org.scalacheck.ScalacheckShapeless
@@ -17,8 +16,8 @@ class DevicesSpec extends WordSpec with MustMatchers with ScalacheckShapeless wi
 
       val devices = new Devices[IO] {
         val device = new Device[IO] {
-          override def send[T: Msg: Show](msg: T): IO[Unit]                              = IO.unit
-          override def <<(events: Events[FiniteDuration])(implicit c: Channel): IO[Unit] = ???
+          override def apply[T: Msg](msg: T): IO[Unit]                                      = IO.unit
+          override def apply(events: Events[FiniteDuration])(implicit c: Channel): IO[Unit] = ???
         }
         override def open(name: DeviceDef): Resource[IO, Device[IO]] = Resource.pure(device)
       }
@@ -27,7 +26,7 @@ class DevicesSpec extends WordSpec with MustMatchers with ScalacheckShapeless wi
         devices
           .open(Gervill)
           .use { device ⇒
-            device.send(pc)
+            device(pc)
           }
           .unsafeRunSync()
 

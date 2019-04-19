@@ -54,13 +54,14 @@ object Messages {
     implicit val show: Show[NoteOn] = n ⇒ s"on $n"
   }
 
-  sealed class ControlChange(private[Messages] val value: Int)
-  case object AllOff        extends ControlChange(120)
-  case object BankSelectMSB extends ControlChange(0)
-  case object BankSelectLSB extends ControlChange(32)
+  class ControlChange(private[Messages] val value: Int, private[Messages] val data: Int)
+  case object AllOff        extends ControlChange(120, 0)
+  case object BankSelectMSB extends ControlChange(0, 0)
+  case object BankSelectLSB extends ControlChange(32, 0)
 
   object ControlChange {
-    implicit def msg[T <: ControlChange]: Msg[T]   = mkMsg(_)
+    implicit def msg[T <: ControlChange]: Msg[T] =
+      cc ⇒ new ShortMessage(CONTROL_CHANGE, cc.value, cc.data)
     implicit def show[T <: ControlChange]: Show[T] = cc ⇒ s"CC $cc"
   }
 
@@ -69,7 +70,5 @@ object Messages {
 
   private def mkMsg(status: Status, data1: Int, data2: Int) =
     new ShortMessage(status.value, data1, data2)
-
-  private def mkMsg(cc: ControlChange) = new ShortMessage(CONTROL_CHANGE, cc.value, 0)
 
 }

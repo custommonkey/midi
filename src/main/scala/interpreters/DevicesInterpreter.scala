@@ -1,17 +1,18 @@
 package interpreters
 
+import algebra.Messages.AllOff
 import algebra.errors.{DeviceNotFound, NoReceivers}
-import algebra.{Device, DeviceDef, Devices, Messages, MidiApi}
+import algebra.types.Sleep
+import algebra.{Device, DeviceDef, Devices, MidiApi}
 import cats.MonadError
 import cats.data.NonEmptyChain
-import cats.effect.{Resource, Timer}
+import cats.effect.Resource
 import cats.implicits._
 import javax.sound.midi.MidiDevice
 import javax.sound.midi.MidiDevice.Info
 
-class DevicesInterpreter[F[_]](api: MidiApi[F], println: PrintInterpreter[F])(
-    implicit F: MonadError[F, Throwable],
-    timer: Timer[F])
+class DevicesInterpreter[F[_]](api: MidiApi[F])(implicit F: MonadError[F, Throwable],
+                                                sleep: Sleep[F])
     extends Devices[F] {
 
   def findReceivers(list: NonEmptyChain[Info]): F[MidiDevice] = list.traverse(api.midiDevice) >>= {
@@ -29,14 +30,14 @@ class DevicesInterpreter[F[_]](api: MidiApi[F], println: PrintInterpreter[F])(
       case None        ⇒ F.raiseError(DeviceNotFound(name))
     }
 
-  override def open(device: DeviceDef): Resource[F, Device[F]] =
+  override def open(deviceDef: DeviceDef): Resource[F, Device[F]] =
     Resource
       .make {
-        (findInfo(device.name) >>= findReceivers)
-          .map(new DeviceInterpreter(_, api, timer, println))
+        (findInfo(deviceDef.name) >>= findReceivers)
+          .map(new DeviceInterpreter(_, api, sleep))
           .flatTap(_.open)
-      } { d ⇒
-        d.send(Messages.AllOff) >> d.close
+      } { device ⇒
+        device(AllOff) >> device.close
       } >>= (Resource.pure(_))
 
 }

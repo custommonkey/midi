@@ -3,7 +3,8 @@ package interpreters
 import cats.Show
 import cats.implicits._
 import javax.sound.midi.MidiDevice.Info
-import javax.sound.midi.{Instrument, Patch}
+import javax.sound.midi.ShortMessage.CONTROL_CHANGE
+import javax.sound.midi.{Instrument, MidiMessage, Patch}
 
 object Shows {
   implicit val showPath: Show[Patch] = p ⇒ s"bank=${p.getBank}, program=${p.getProgram}"
@@ -15,5 +16,13 @@ object Shows {
 
   implicit val showInfo: Show[Info] = info ⇒
     show"${info.getName}, ${info.getDescription}, ${info.getVendor}, ${info.getVersion}"
+
+  implicit val showMsg: Show[MidiMessage] = m ⇒ {
+    val status = m.getStatus match {
+      case CONTROL_CHANGE ⇒ "CC"
+      case s              ⇒ s.toString
+    }
+    s"$status:${m.getMessage.mkString(":")}"
+  }
 
 }

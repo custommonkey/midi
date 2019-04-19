@@ -3,7 +3,7 @@ package algebra
 import algebra.types.MidiInt
 import cats.Functor
 
-case class Event[T](e: EvType, n: MidiInt, t: T)
+case class Event[T](e: EvType, n: MidiInt, time: T)
 
 object Event {
   implicit val functorEvent: Functor[Event] = new Functor[Event] {

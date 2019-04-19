@@ -1,0 +1,65 @@
+digraph G {
+  Msg;
+  Score     ;
+  Channel   ;
+  Nint      ;
+  Timestamp ;
+T -> Score ;
+NoteOrRest -> Note -> Nint ;
+NoteOrRest -> Rest ;
+DeviceDef;
+
+DeviceDef -> Devices;
+
+/*
+
+
+
+trait Receiver[F[_]] {
+  def send[T: Msg: Show](t: T, i: Long): F[Unit]
+}
+
+trait Device[F[_]] {
+  def send[T: Msg: Show](msg: T): F[Unit]
+//  def randomProgram: F[Unit]
+  def <<[T](t: T)(implicit c: Channel, s: ToScore[T]): F[Unit]
+}
+
+trait MidiApi[F[_]] {
+  def midiDevice(info: Info): F[MidiDevice]
+  def receiver(device: MidiDevice): F[Receiver[F]]
+  def midiDeviceInfo: F[List[Info]]
+  def instruments: F[List[Instrument]]
+}
+
+trait Reports[F[_]] {
+  def report[E: Show](e: E): F[Unit]
+}
+
+trait Print[F[_]] {
+  def apply[T: Show](value: T): F[Unit]
+}
+
+trait Utils[F[_]] {
+  def showInstruments: F[Unit]
+  def showDevices: F[Unit]
+  def randomProgram(device: Device[F]): F[Unit]
+}
+
+trait RandomApi[F[_]] {
+  def apply[T](implicit r: Random[T]): F[T]
+}
+
+trait Random[T] {
+  def apply(): T
+}
+
+trait Algebra[F[_]] {
+  def println: Print[F]
+  def reports: Reports[F]
+  def api: MidiApi[F]
+  def devices: Devices[F]
+  def utils: Utils[F]
+  def random: RandomApi[F]
+*/
+}

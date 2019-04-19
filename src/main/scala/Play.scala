@@ -13,21 +13,21 @@ object Play extends PlayApp {
   tempo = Tempo(160)
 
   override def play: IO[Any] =
-    devices open Gervill use { device ⇒
+    devices open Gervill use { gervill ⇒
       import utils._
 
       val notes: IO[List[MidiInt]] = List.fill(4)(random[MidiInt]).sequence
       val bars: IO[List[MidiInt]]  = List.fill(8)(notes).sequence.map(_.flatten)
 
       def boom(i: MidiInt): IO[Unit] =
-        device << (Note(i, 1.semiquaver) + Rest(1.semiquaver)).events.durations
+        gervill((Note(i, 1.semiquaver) + Rest(1.semiquaver)).events.durations)
 
       val leftHand  = bars.map(_.traverse(boom).void)
       val rightHand = bars.map(_.map(_ + 12).traverse(boom)).void
 
       showDevices >>
         showInstruments >>
-        device.send(Gervill.AcousticGrandPiano) >>
+        gervill(Gervill.AcousticGrandPiano) >>
         (for {
           left  ← leftHand.start
           right ← rightHand.start

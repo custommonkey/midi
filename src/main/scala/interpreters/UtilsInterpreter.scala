@@ -11,7 +11,7 @@ class UtilsInterpreter[F[_]: Monad](api: MidiApi[F], println: Print[F], random: 
 
 //TODO:  "implement as Device.randomProgram"
   override def randomProgram(device: Device[F]): F[Unit] =
-    random[ProgramChange] >>= device.send[ProgramChange]
+    random[ProgramChange] >>= device[ProgramChange]
 
   override def showInstruments: F[Unit] =
     api.instruments >>= { _.traverse(println(_)).void }

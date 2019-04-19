@@ -1,6 +1,6 @@
 import algebra.{Note, NoteOrRest, Tempo, ToScore}
 import algebra.errors.{AppError, DeviceNotFound, NoReceivers}
-import algebra.types.Channel
+import algebra.types.{Channel, Sleep}
 import cats.effect.ExitCode.{Error, Success}
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
@@ -14,6 +14,7 @@ trait PlayApp extends IOApp with AllInterpreters {
   implicit def list[T <: NoteOrRest]: ToScore[List[T]] = (l: List[T]) ⇒ l
   implicit var tempo: Tempo                            = Tempo(120)
   implicit var channel: Channel                        = 0
+  override implicit protected def sleep: Sleep[IO] = timer.sleep
 
   def play: IO[Any]
 

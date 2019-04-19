@@ -114,6 +114,13 @@ class EventsSpec extends FunSuite with Arbitraries with CatsSuite {
       (n1 ::: n2).events.durations
     }
   }
+
+  test("compose events") {
+    forAll { (n1: Event[Timestamp], n2: Event[Timestamp]) ⇒
+      (Events(n1) |+| Events(n2)) should be (Events(List(n1, n2).sortBy(_.time.value)))
+    }
+  }
+
   test("durations &") {
     forAll { (n1: List[Note], n2: List[Note]) ⇒
       (n1.events & n2.events).durations

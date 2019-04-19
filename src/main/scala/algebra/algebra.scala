@@ -16,11 +16,12 @@ import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Random.nextInt
 
 object types {
-  type Msg[T]    = T ⇒ MidiMessage
-  type Score     = List[NoteOrRest]
-  type Channel   = Int Refined Closed[W.`0`.T, W.`15`.T]
-  type MidiInt   = Int Refined Closed[W.`1`.T, W.`128`.T]
-  type Timestamp = Long Refined NonNegative
+  type Msg[T]      = T ⇒ MidiMessage
+  type Score       = List[NoteOrRest]
+  type Channel     = Int Refined Closed[W.`0`.T, W.`15`.T]
+  type MidiInt     = Int Refined Closed[W.`1`.T, W.`128`.T]
+  type Timestamp   = Long Refined NonNegative
+  type Sleep[F[_]] = FiniteDuration ⇒ F[Unit]
 
   object MidiInt {
 
@@ -80,12 +81,12 @@ trait Devices[F[_]] {
 }
 
 trait Receiver[F[_]] {
-  def apply[T: Msg: Show](t: T, i: Long): F[Unit]
+  def apply[T: Msg](t: T, i: Long): F[Unit]
 }
 
 trait Device[F[_]] {
-  def send[T: Msg: Show](msg: T): F[Unit]
-  def <<(events: Events[FiniteDuration])(implicit channel: Channel): F[Unit]
+  def apply[T: Msg](msg: T): F[Unit]
+  def apply(events: Events[FiniteDuration])(implicit channel: Channel): F[Unit]
 }
 
 trait MidiApi[F[_]] {
@@ -100,7 +101,7 @@ trait Reports[F[_]] {
 }
 
 trait Print[F[_]] {
-  def apply[T: Show](value: T): F[Unit]
+  def apply[T](value: T)(implicit s: Show[T]): F[Unit]
 }
 
 trait Utils[F[_]] {
@@ -115,6 +116,10 @@ trait RandomApi[F[_]] {
 
 trait Random[T] {
   def apply(): T
+}
+object Random {
+  implicit def randomList[T](implicit random: Random[T]): Random[List[T]] =
+    () ⇒ List.fill(10)(random())
 }
 
 trait Algebra[F[_]] {

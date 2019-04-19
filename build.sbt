@@ -6,6 +6,7 @@ scalaVersion := "2.12.8"
 
 libraryDependencies ++= Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
+  "com.github.mpilquist"       %% "simulacrum"                % "0.14.0",
   "eu.timepit"                 %% "refined"                   % "0.9.3",
   "eu.timepit"                 %% "refined-cats"              % "0.9.3",
   "eu.timepit"                 %% "refined-scalacheck_1.13"   % "0.9.3" % Test,
@@ -66,3 +67,7 @@ scalacOptions ++= Seq(
   "-Ywarn-unused:privates", // Warn if a private member is unused.
   "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
 )
+
+coverageEnabled := true
+
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
